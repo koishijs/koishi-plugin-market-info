@@ -38,6 +38,8 @@ function makeDict(result: MarketResult) {
 }
 
 export function apply(ctx: Context, config: Config) {
+  ctx.i18n.define('zh', require('./locales/zh-CN.yml'))
+
   const getMarket = async () => {
     const data = await ctx.http.get<MarketResult>('https://registry.koishi.chat/market.json')
     return makeDict(data)
@@ -46,14 +48,18 @@ export function apply(ctx: Context, config: Config) {
   ctx.on('ready', async () => {
     let previous = await getMarket()
 
+    ctx.command('market')
+      .action(async ({ session }) => {
+        return session.text('.overview', [Object.keys(previous).length])
+      })
+
     ctx.setInterval(async () => {
       const current = await getMarket()
-      const diff = Object.keys({ ...previous, ...current }).map((name) => {
+      const diff = Object.keys(current).map((name) => {
         const version1 = previous[name]?.version
         const version2 = current[name]?.version
         if (version1 === version2) return
         if (!version1) return '新增：' + name
-        if (!version2) return '移除：' + name
         return `更新：${name} (${version1} → ${version2})`
       }).filter(Boolean).sort()
       previous = current

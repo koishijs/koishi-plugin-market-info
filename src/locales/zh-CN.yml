@@ -1,0 +1,6 @@
+commands:
+  market:
+    description: 插件市场信息
+
+    messages:
+      overview: 当前共有 {0} 个插件。
