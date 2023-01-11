@@ -22,25 +22,28 @@ export const Rule: Schema<Rule> = Schema.object({
 export interface Config {
   rules: Rule[]
   interval: number
+  showHidden: boolean
   showDeletion: boolean
 }
 
 export const Config: Schema<Config> = Schema.object({
   rules: Schema.array(Rule).description('推送规则。'),
   interval: Schema.number().default(Time.minute * 30).description('轮询间隔 (毫秒)。'),
+  showHidden: Schema.boolean().default(false).description('是否显示隐藏的插件。'),
   showDeletion: Schema.boolean().default(false).description('是否显示删除的插件。'),
 })
 
-function makeDict(result: MarketResult) {
-  const dict: Dict<AnalyzedPackage> = {}
-  for (const object of result.objects) {
-    dict[object.shortname] = object
-  }
-  return dict
-}
-
 export function apply(ctx: Context, config: Config) {
   ctx.i18n.define('zh', require('./locales/zh-CN'))
+
+  const makeDict = (result: MarketResult) => {
+    const dict: Dict<AnalyzedPackage> = {}
+    for (const object of result.objects) {
+      if (object.manifest.hidden && !config.showHidden) continue
+      dict[object.shortname] = object
+    }
+    return dict
+  }
 
   const getMarket = async () => {
     const data = await ctx.http.get<MarketResult>('https://registry.koishi.chat/market.json')
