@@ -63,8 +63,9 @@ export function apply(ctx: Context, config: Config) {
       const diff = Object.keys({ ...previous, ...current }).map((name) => {
         const version1 = previous[name]?.version
         const version2 = current[name]?.version
+        const description = current[name]?.description
         if (version1 === version2) return
-        if (!version1) return `新增：${name}`
+        if (!version1) return `新增：${name}\n  ${description}`
         if (version2) return `更新：${name} (${version1} → ${version2})`
         if (config.showDeletion) return `删除：${name}`
       }).filter(Boolean).sort()
