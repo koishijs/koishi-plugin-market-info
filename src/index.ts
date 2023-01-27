@@ -24,6 +24,7 @@ export interface Config {
   interval: number
   showHidden: boolean
   showDeletion: boolean
+  showDescription: boolean
 }
 
 export const Config: Schema<Config> = Schema.object({
@@ -31,6 +32,7 @@ export const Config: Schema<Config> = Schema.object({
   interval: Schema.number().default(Time.minute * 30).description('轮询间隔 (毫秒)。'),
   showHidden: Schema.boolean().default(false).description('是否显示隐藏的插件。'),
   showDeletion: Schema.boolean().default(false).description('是否显示删除的插件。'),
+  showDescription: Schema.boolean().default(false).description('是否显示插件描述。'),
 })
 
 export function apply(ctx: Context, config: Config) {
@@ -63,11 +65,22 @@ export function apply(ctx: Context, config: Config) {
       const diff = Object.keys({ ...previous, ...current }).map((name) => {
         const version1 = previous[name]?.version
         const version2 = current[name]?.version
-        const description = current[name]?.description
         if (version1 === version2) return
-        if (!version1) return `新增：${name}\n  ${description}`
-        if (version2) return `更新：${name} (${version1} → ${version2})`
-        if (config.showDeletion) return `删除：${name}`
+
+        if (!version1) {
+          let output = `新增：${name}`
+          const { description } = current[name].manifest
+          if (config.showDescription) output += `\n  ${description.zh || description.en}`
+          return output
+        }
+
+        if (version2) {
+          return `更新：${name} (${version1} → ${version2})`
+        }
+
+        if (config.showDeletion) {
+          return `删除：${name}`
+        }
       }).filter(Boolean).sort()
       previous = current
       if (!diff.length) return
