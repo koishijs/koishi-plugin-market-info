@@ -24,6 +24,7 @@ export interface Config {
   interval: number
   showHidden: boolean
   showDeletion: boolean
+  showPublisher: boolean
   showDescription: boolean
 }
 
@@ -32,6 +33,7 @@ export const Config: Schema<Config> = Schema.object({
   interval: Schema.number().default(Time.minute * 30).description('轮询间隔 (毫秒)。'),
   showHidden: Schema.boolean().default(false).description('是否显示隐藏的插件。'),
   showDeletion: Schema.boolean().default(false).description('是否显示删除的插件。'),
+  showPublisher: Schema.boolean().default(false).description('是否显示插件发布者。'),
   showDescription: Schema.boolean().default(false).description('是否显示插件描述。'),
 })
 
@@ -69,8 +71,11 @@ export function apply(ctx: Context, config: Config) {
 
         if (!version1) {
           let output = `新增：${name}`
-          const { description } = current[name].manifest
-          if (config.showDescription) output += `\n  ${description.zh || description.en}`
+          if (config.showPublisher) output += ` (@${current[name].publisher.username})`
+          if (config.showDescription) {
+            const { description } = current[name].manifest
+            output += `\n  ${description.zh || description.en}`
+          }
           return output
         }
 
