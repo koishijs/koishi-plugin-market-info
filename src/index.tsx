@@ -59,7 +59,8 @@ export function apply(ctx: Context, config: Config) {
 
     ctx.command('market')
       .action(async ({ session }) => {
-        return session.text('.overview', [Object.keys(previous).length])
+        const objects = Object.values(previous).filter(data => !data.manifest.hidden)
+        return session.text('.overview', [objects.length])
       })
 
     ctx.setInterval(async () => {
@@ -70,7 +71,7 @@ export function apply(ctx: Context, config: Config) {
         if (version1 === version2) return
 
         if (!version1) {
-          let output = `新增：${name}`
+          let output = <p><i18n path="market-info.created"></i18n></p>
           if (config.showPublisher) output += ` (@${current[name].publisher.username})`
           if (config.showDescription) {
             const { description } = current[name].manifest

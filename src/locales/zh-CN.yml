@@ -4,3 +4,9 @@ commands:
 
     messages:
       overview: 当前共有 {0} 个插件。
+
+market-info:
+  header: '[插件市场更新]'
+  created: 新增：{0}
+  updated: 更新：{0} ({1} → {2})`
+  deleted: 移除：{0}
