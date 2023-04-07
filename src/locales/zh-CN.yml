@@ -4,6 +4,10 @@ commands:
 
     messages:
       overview: 当前共有 {0} 个插件。
+      not-found: 未找到插件 {0}。
+      detail: |-
+        {name} ({version})
+        {manifest.description.zh || manifest.description.en}
 
 market-info:
   header: '[插件市场更新]'

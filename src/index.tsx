@@ -57,10 +57,16 @@ export function apply(ctx: Context, config: Config) {
   ctx.on('ready', async () => {
     let previous = await getMarket()
 
-    ctx.command('market')
-      .action(async ({ session }) => {
-        const objects = Object.values(previous).filter(data => !data.manifest.hidden)
-        return session.text('.overview', [objects.length])
+    ctx.command('market [name]')
+      .action(async ({ session }, name) => {
+        if (!name) {
+          const objects = Object.values(previous).filter(data => !data.manifest.hidden)
+          return session.text('.overview', [objects.length])
+        }
+
+        const data = previous[name]
+        if (!data) return session.text('.not-found', [name])
+        return session.text('.detail', data)
       })
 
     ctx.setInterval(async () => {
