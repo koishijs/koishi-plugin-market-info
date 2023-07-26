@@ -3,6 +3,8 @@ import type { AnalyzedPackage, MarketResult } from '@koishijs/registry'
 
 const logger = new Logger('market')
 
+export const using = ['installer']
+
 export const name = 'market-info'
 
 export interface Rule {
@@ -50,7 +52,7 @@ export function apply(ctx: Context, config: Config) {
   }
 
   const getMarket = async () => {
-    const data = await ctx.http.get<MarketResult>('https://registry.koishi.chat/market.json')
+    const data = await ctx.http.get<MarketResult>(ctx.installer.endpoint)
     return makeDict(data)
   }
 
