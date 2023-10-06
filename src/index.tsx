@@ -22,6 +22,7 @@ export const Rule: Schema<Rule> = Schema.object({
 export interface Config {
   rules: Rule[]
   interval: number
+  endpoint: string | 'https://registry.koishi.chat'
   showHidden: boolean
   showDeletion: boolean
   showPublisher: boolean
@@ -30,6 +31,7 @@ export interface Config {
 
 export const Config: Schema<Config> = Schema.object({
   rules: Schema.array(Rule).description('推送规则。'),
+  endpoint: Schema.string().role('link').default('https://registry.koishi.chat/index.json').description('插件市场源'),
   interval: Schema.number().default(Time.minute * 30).description('轮询间隔 (毫秒)。'),
   showHidden: Schema.boolean().default(false).description('是否显示隐藏的插件。'),
   showDeletion: Schema.boolean().default(false).description('是否显示删除的插件。'),
@@ -50,7 +52,7 @@ export function apply(ctx: Context, config: Config) {
   }
 
   const getMarket = async () => {
-    const data = await ctx.http.get<MarketResult>('https://registry.koishi.chat/market.json')
+    const data = await ctx.http.get<MarketResult>(config.endpoint)
     return makeDict(data)
   }
 
