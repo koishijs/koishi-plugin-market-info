@@ -90,17 +90,17 @@ export function apply(ctx: Context, config: Config) {
         }
 
         if (version2) {
-          return `更新：${name} (${version1} → ${version2})`
+          return <p><i18n path="market-info.updated">{[name, version1, version2]}</i18n></p>
         }
 
         if (config.showDeletion) {
-          return `删除：${name}`
+          return <p><i18n path="market-info.deleted">{[name]}</i18n></p>
         }
       }).filter(Boolean).sort()
       previous = current
       if (!diff.length) return
 
-      const content = ['[插件市场更新]', ...diff].join('\n')
+      const content = [<i18n path="market-info.header"></i18n>, ...diff].join('\n')
       logger.info(content)
       for (let { channelId, platform, selfId, guildId } of config.rules) {
         if (!selfId) {
