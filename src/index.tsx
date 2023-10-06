@@ -1,6 +1,6 @@
 import { Context, Dict, Logger, Schema, Time } from 'koishi'
 import type { AnalyzedPackage, MarketResult } from '@koishijs/registry'
-import {} from '@koishijs/plugin-market'
+import { } from '@koishijs/plugin-market'
 
 const logger = new Logger('market')
 
@@ -47,7 +47,7 @@ export function apply(ctx: Context, config: Config) {
     const dict: Dict<AnalyzedPackage> = {}
     for (const object of result.objects) {
       if (object.manifest.hidden && !config.showHidden) continue
-      dict[object.shortname] = object
+      dict[object.shortname] = Object.assign(object.package, { manifest: object.manifest })
     }
     return dict
   }
