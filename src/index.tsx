@@ -1,9 +1,12 @@
 import { Context, Dict, Logger, Schema, Time } from 'koishi'
-import type { AnalyzedPackage, MarketResult } from '@koishijs/registry'
+import {} from '@koishijs/plugin-market'
+import type { SearchObject, SearchResult } from '@koishijs/registry'
 
 const logger = new Logger('market')
 
 export const name = 'market-info'
+
+export const using = ['installer']
 
 export interface Rule {
   platform: string
@@ -40,8 +43,8 @@ export const Config: Schema<Config> = Schema.object({
 export function apply(ctx: Context, config: Config) {
   ctx.i18n.define('zh', require('./locales/zh-CN'))
 
-  const makeDict = (result: MarketResult) => {
-    const dict: Dict<AnalyzedPackage> = {}
+  const makeDict = (result: SearchResult) => {
+    const dict: Dict<SearchObject> = {}
     for (const object of result.objects) {
       if (object.manifest.hidden && !config.showHidden) continue
       dict[object.shortname] = object
@@ -50,7 +53,7 @@ export function apply(ctx: Context, config: Config) {
   }
 
   const getMarket = async () => {
-    const data = await ctx.http.get<MarketResult>('https://registry.koishi.chat/market.json')
+    const data = await ctx.http.get<SearchResult>(ctx.installer.endpoint)
     return makeDict(data)
   }
 
@@ -72,16 +75,20 @@ export function apply(ctx: Context, config: Config) {
     ctx.setInterval(async () => {
       const current = await getMarket()
       const diff = Object.keys({ ...previous, ...current }).map((name) => {
-        const version1 = previous[name]?.version
-        const version2 = current[name]?.version
+        const version1 = previous[name]?.package.version
+        const version2 = current[name]?.package.version
         if (version1 === version2) return
 
         if (!version1) {
           let output = <p><i18n path="market-info.created"></i18n></p>
-          if (config.showPublisher) output += ` (@${current[name].publisher.username})`
+          if (config.showPublisher) output += ` (@${current[name].package.publisher.username})`
           if (config.showDescription) {
             const { description } = current[name].manifest
-            output += `\n  ${description.zh || description.en}`
+            if (description && typeof description === 'object') {
+              output += `\n  ${description.zh || description.en}`
+            } else if (description && typeof description === 'string') {
+              output += `\n  ${description}`
+            }
           }
           return output
         }
