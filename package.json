@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-market-info",
   "description": "Koishi plugin market information",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -25,11 +25,6 @@
     "description": {
       "en": "Plugin market information",
       "zh": "插件市场查询与订阅，第一时间获知插件更新！"
-    },
-    "service": {
-      "required": [
-        "installer"
-      ]
     }
   },
   "keywords": [
@@ -47,9 +42,8 @@
     "koishi": "^4.15.0"
   },
   "devDependencies": {
-    "@koishijs/plugin-market": "^2.3.1",
     "@koishijs/registry": "^6.0.4",
-    "@types/node": "^18.15.5",
+    "@types/node": "^20.8.10",
     "atsc": "^1.2.2",
     "koishi": "^4.15.0",
     "typescript": "^5.2.2"
