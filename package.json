@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-market-info",
   "description": "Koishi plugin market information",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

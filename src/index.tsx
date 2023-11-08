@@ -1,27 +1,25 @@
-import { Context, Dict, Logger, Schema, Time } from 'koishi'
+import { Context, Dict, Schema, Time, deepEqual, pick, sleep } from 'koishi'
 import {} from '@koishijs/plugin-market'
 import type { SearchObject, SearchResult } from '@koishijs/registry'
 
-const logger = new Logger('market')
-
 export const name = 'market-info'
 
-export interface Rule {
+interface Receiver {
   platform: string
+  selfId: string
   channelId: string
-  selfId?: string
   guildId?: string
 }
 
-export const Rule: Schema<Rule> = Schema.object({
-  platform: Schema.string().description('平台名称。').required(),
-  channelId: Schema.string().description('频道 ID。').required(),
+const Receiver: Schema<Receiver> = Schema.object({
+  platform: Schema.string().required().description('平台名称。'),
+  selfId: Schema.string().required().description('机器人 ID。'),
+  channelId: Schema.string().required().description('频道 ID。'),
   guildId: Schema.string().description('群组 ID。'),
-  selfId: Schema.string().description('机器人 ID。'),
 })
 
 export interface Config {
-  rules: Rule[]
+  rules: Receiver[]
   endpoint: string
   interval: number
   showHidden: boolean
@@ -31,7 +29,7 @@ export interface Config {
 }
 
 export const Config: Schema<Config> = Schema.object({
-  rules: Schema.array(Rule).description('推送规则。'),
+  rules: Schema.array(Receiver).role('table').description('推送规则列表。'),
   endpoint: Schema.string().default('https://registry.koishi.chat/index.json').description('插件市场地址。'),
   interval: Schema.number().default(Time.minute * 30).description('轮询间隔 (毫秒)。'),
   showHidden: Schema.boolean().default(false).description('是否显示隐藏的插件。'),
@@ -42,6 +40,8 @@ export const Config: Schema<Config> = Schema.object({
 
 export function apply(ctx: Context, config: Config) {
   ctx.i18n.define('zh', require('./locales/zh-CN'))
+
+  const logger = ctx.logger('market')
 
   const makeDict = (result: SearchResult) => {
     const dict: Dict<SearchObject> = {}
@@ -61,7 +61,27 @@ export function apply(ctx: Context, config: Config) {
     let previous = await getMarket()
 
     ctx.command('market [name]')
-      .action(async ({ session }, name) => {
+      .option('receive', '-r', { authority: 3, value: true })
+      .option('receive', '-R', { authority: 3, value: false })
+      .action(async ({ session, options }, name) => {
+        if (typeof options.receive === 'boolean') {
+          const index = config.rules.findIndex(receiver => {
+            return deepEqual(
+              pick(receiver, ['platform', 'selfId', 'channelId', 'guildId']),
+              pick(session, ['platform', 'selfId', 'channelId', 'guildId']),
+            )
+          })
+          if (options.receive) {
+            if (index >= 0) return session.text('.not-modified')
+            config.rules.push(pick(session, ['platform', 'selfId', 'channelId', 'guildId']))
+          } else {
+            if (index < 0) return session.text('.not-modified')
+            config.rules.splice(index, 1)
+          }
+          ctx.scope.update(config, false)
+          return session.text('.updated')
+        }
+  
         if (!name) {
           const objects = Object.values(previous).filter(data => !data.manifest.hidden)
           return session.text('.overview', [objects.length])
@@ -106,15 +126,12 @@ export function apply(ctx: Context, config: Config) {
 
       const content = ['[插件市场更新]', ...diff].join('\n')
       logger.info(content)
-      for (let { channelId, platform, selfId, guildId } of config.rules) {
-        if (!selfId) {
-          const channel = await ctx.database.getChannel(platform, channelId, ['assignee', 'guildId'])
-          if (!channel || !channel.assignee) return
-          selfId = channel.assignee
-          guildId = channel.guildId
-        }
-        const bot = ctx.bots[`${platform}:${selfId}`]
-        bot?.sendMessage(channelId, content, guildId)
+      const delay = ctx.root.config.delay.broadcast
+      for (let index = 0; index < config.rules.length; ++index) {
+        if (index && delay) await sleep(delay)
+        const { platform, selfId, channelId, guildId } = config.rules[index]
+        const bot = ctx.bots.find(bot => bot.platform === platform && bot.selfId === selfId)
+        bot.sendMessage(channelId, content, guildId)
       }
     }, config.interval)
   })
