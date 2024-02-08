@@ -15,4 +15,3 @@ tsconfig.tsbuildinfo
 *.ntvs*
 *.njsproj
 *.sln
-package-lock.json
