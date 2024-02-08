@@ -10,7 +10,6 @@ commands:
       detail: |-
         {name} ({version})
         {manifest.description.zh || manifest.description.en}
-        
     options:
       receive.true: 订阅到此频道
       receive.false: 取消订阅到此频道
