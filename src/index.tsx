@@ -61,8 +61,8 @@ export function apply(ctx: Context, config: Config) {
     let previous = await getMarket()
 
     ctx.command('market [name]')
-      .option('receive', '-r', { authority: 3, value: true })
-      .option('receive', '-R', { authority: 3, value: false })
+      .option('receive', '-r 订阅插件市场更新', { authority: 3, value: true })
+      .option('receive', '-R 取消订阅', { authority: 3, value: false })
       .action(async ({ session, options }, name) => {
         if (typeof options.receive === 'boolean') {
           const index = config.rules.findIndex(receiver => {
