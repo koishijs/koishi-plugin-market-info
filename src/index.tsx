@@ -105,7 +105,7 @@ export function apply(ctx: Context, config: Config) {
         if (version1 === version2) return
 
         if (!version1) {
-          let output = <p><i18n path="market-info.created"></i18n></p>
+          let output = `新增：${name}`
           if (config.showPublisher) output += ` (@${current[name].package.publisher.username})`
           if (config.showDescription) {
             const { description } = current[name].manifest

@@ -14,8 +14,3 @@ commands:
       receive.true: 订阅到此频道
       receive.false: 取消订阅到此频道
       
-market-info:
-  header: '[插件市场更新]'
-  created: 新增：{0}
-  updated: 更新：{0} ({1} → {2})`
-  deleted: 移除：{0}
