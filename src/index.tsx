@@ -1,5 +1,4 @@
 import { Context, Dict, Schema, Time, deepEqual, pick, sleep } from 'koishi'
-import {} from '@koishijs/plugin-market'
 import type { SearchObject, SearchResult } from '@koishijs/registry'
 
 export const name = 'market-info'
@@ -73,7 +72,13 @@ export function apply(ctx: Context, config: Config) {
           })
           if (options.receive) {
             if (index >= 0) return session.text('.not-modified')
-            config.rules.push(pick(session, ['platform', 'selfId', 'channelId', 'guildId']))
+            const receiver: Receiver = {
+              platform: session.platform,
+              selfId: session.selfId,
+              channelId: session.channelId!,
+              guildId: session.guildId,
+            }
+            config.rules.push(receiver)
           } else {
             if (index < 0) return session.text('.not-modified')
             config.rules.splice(index, 1)
